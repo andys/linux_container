@@ -1,0 +1,6 @@
+CHANGELOG
+README.md
+Rakefile
+lib/linux_container.rb
+test/test_all.rb
+Manifest
