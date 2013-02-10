@@ -1,13 +1,21 @@
-require "#{File.dirname(__FILE__)}/../lib/linux_container"
+at_exit do
+  puts "Destroying test containers"
+  File.unlink($sshkey) rescue nil
+  ($ec.destroy '-f' if $ec) rescue nil
+  ($c2.destroy '-f' if $c2) rescue nil
+  $c.destroy '-f'
+end
 
 require 'minitest/autorun'
+require "#{File.dirname(__FILE__)}/../lib/linux_container"
 
 class TestLinuxContainer < MiniTest::Unit::TestCase
   def self.startup
+    puts "Creating test containers"
     $sshkey = "/tmp/linuxcontainergemtestssh#{$$}"
     `ssh-keygen -q -t rsa -f #{$sshkey} -N ''` unless File.exists?($sshkey)
     $c = LinuxContainer.new(name: 'linuxcontainergemtest', ssh_key_path: $sshkey)
-    $c.create
+    $c.create or raise "Create failed"
   end
 
   def test_state
@@ -26,6 +34,14 @@ class TestLinuxContainer < MiniTest::Unit::TestCase
     assert_includes LinuxContainer.all.map(&:name), 'linuxcontainergemtest'
   end
 
+  def test_clone
+    $c2 = LinuxContainer.new name: 'linuxcontainergemtest2'
+    $c2.clone_from $c.name
+    assert_includes LinuxContainer.all.map(&:name), 'linuxcontainergemtest2'
+    $c2.destroy('-f')
+    refute_includes LinuxContainer.all.map(&:name), 'linuxcontainergemtest2'
+  end
+
   def test_ephemeral
     assert($ec = $c.start_ephemeral)
     assert_match /^linuxcontainergemtest.+/, $ec.name
@@ -38,11 +54,4 @@ class TestLinuxContainer < MiniTest::Unit::TestCase
   end
 end
 
-
-
-MiniTest::Unit.after_tests do
-    File.unlink($sshkey) rescue nil
-    ($ec.destroy '-f' if $ec) rescue nil
-    $c.destroy '-f'
-  end
 TestLinuxContainer.startup

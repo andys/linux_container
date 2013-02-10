@@ -33,6 +33,11 @@ class LinuxContainer
     define_method(cmd) {|*args| lxc_execute(cmd, *args) }
   end
 
+  def clone_from(from, *args)
+    fromname = self.class === from ? from.name : from
+    lxc_execute('clone', '-o',fromname, *args)
+  end
+
   def start_ephemeral
     args = ['lxc-start-ephemeral','-U','aufs','-u',username,'-o',name]
     logfile = bg_execute(*args)

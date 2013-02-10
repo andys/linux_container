@@ -42,6 +42,14 @@ very little disk space, which then disappears when shut down.
 ### Start an ephemeral container cloning an existing container
 
     > e = c.start_ephemeral
+    > e.wait_for { ip && sshable? }
+
+
+### Clone an existing container and start it in background, with 512M memlimit
+
+    > c2 = LinuxContainer.new(name: 'clonetest')
+    > c2.clone_from(c)
+    > c2.start('-d', '-s', 'lxc.cgroup.memory.limit_in_bytes=512M')
 
 
 ### Get existing containers
@@ -56,7 +64,5 @@ very little disk space, which then disappears when shut down.
 ### other commands
 
     execute, kill, wait, cgroup, ps, info, freeze, unfreeze, netstat
-
-
 
  
