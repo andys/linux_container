@@ -29,7 +29,7 @@ class LinuxContainer
     lxc_execute('create', '-t', config.delete(:template) || 'ubuntu-cloud', '--', *args)
   end
   
-  [:start, :stop, :destroy, :execute, :kill, :wait, :cgroup, :ps, :info, :freeze, :unfreeze, :netstat].each do |cmd|
+  [:start, :stop, :shutdown, :destroy, :execute, :kill, :wait, :cgroup, :ps, :info, :freeze, :unfreeze, :netstat].each do |cmd|
     define_method(cmd) {|*args| lxc_execute(cmd, *args) }
   end
 
