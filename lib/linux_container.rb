@@ -8,7 +8,7 @@ class LinuxContainer
   attr_writer :ip
 
   def self.all
-    `sudo lxc-ls`.lines.map(&:strip).uniq.map {|cname| new(name: cname) }
+    `#{sudo_if_needed} lxc-ls`.lines.map(&:strip).uniq.map {|cname| new(name: cname) }
   end
   
   def initialize(params={})
@@ -93,7 +93,7 @@ class LinuxContainer
   end
   
   def execute(*cmd)
-    cmdstring = "sudo #{cmd.shift} #{Shellwords.join(cmd)} "
+    cmdstring = "#{self.class.sudo_if_needed} #{cmd.shift} #{Shellwords.join(cmd)} "
     result = `#{cmdstring} 2>&1`
     raise "command failed: #{cmdstring.inspect}\n#{result}" unless $? == 0
     result
@@ -101,7 +101,7 @@ class LinuxContainer
   
   def bg_execute(*cmd)
     logfile = Tempfile.new(self.class.to_s)
-    cmdstring = "sudo #{cmd.shift} #{Shellwords.join(cmd)} >>#{logfile.path} 2>>#{logfile.path} &"
+    cmdstring = "#{self.class.sudo_if_needed} #{cmd.shift} #{Shellwords.join(cmd)} >>#{logfile.path} 2>>#{logfile.path} &"
     system(cmdstring)
     raise "command failed: #{cmdstring.inspect}\n" unless $? == 0
     logfile
@@ -115,4 +115,9 @@ class LinuxContainer
     nil
   end
   
+  def self.sudo_if_needed
+    'sudo' unless Process.uid == 0
+  end
+  
 end
+
