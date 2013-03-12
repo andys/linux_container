@@ -57,12 +57,16 @@ very little disk space, which then disappears when shut down.
     > LinuxContainer.all
      => [container, container, container, ... ]
 
+### Gracecful shutdown
+
+    > c.shutdown '-t', '120'
+
+
 ### Force shutdown
 
-    c.destroy '-f'
+    > c.destroy '-f'
 
 ### other commands
 
     execute, kill, wait, cgroup, ps, info, freeze, unfreeze, netstat
 
- 

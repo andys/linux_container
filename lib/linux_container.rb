@@ -101,7 +101,7 @@ class LinuxContainer
   
   def bg_execute(*cmd)
     logfile = Tempfile.new(self.class.to_s)
-    cmdstring = "#{self.class.sudo_if_needed} #{cmd.shift} #{Shellwords.join(cmd)} >>#{logfile.path} 2>>#{logfile.path} &"
+    cmdstring = "( #{self.class.sudo_if_needed} #{cmd.shift} #{Shellwords.join(cmd)} >>#{logfile.path} 2>>#{logfile.path} & )"
     system(cmdstring)
     raise "command failed: #{cmdstring.inspect}\n" unless $? == 0
     logfile
