@@ -40,12 +40,11 @@ class LinuxContainer
 
   def start_ephemeral
     args = ['lxc-start-ephemeral','-U','aufs','-u',username,'-o',name]
-    logfile = bg_execute(*args)
+    logfile_path = bg_execute(*args)
     newname = nil
     while newname.nil?
       sleep 1
-      logfile.rewind
-      newname = $1 if logfile.read =~ /^(.*) is running/
+      newname = $1 if File.read(logfile_path) =~ /^(.*) is running/
      end
     self.class.new(name: newname, ssh_key_path: ssh_key_path, username: username)
   end
@@ -100,11 +99,11 @@ class LinuxContainer
   end
   
   def bg_execute(*cmd)
-    logfile = Tempfile.new(self.class.to_s)
-    cmdstring = "( #{self.class.sudo_if_needed} #{cmd.shift} #{Shellwords.join(cmd)} >>#{logfile.path} 2>>#{logfile.path} & )"
+    logfile_path = "/tmp/lxc_ephemeral_#{Time.now.to_i.to_s(36)}#{$$}#{rand(0x100000000).to_s(36)}.log"
+    cmdstring = "( #{self.class.sudo_if_needed} #{cmd.shift} #{Shellwords.join(cmd)} >>#{logfile_path} 2>>#{logfile_path} & )"
     system(cmdstring)
     raise "command failed: #{cmdstring.inspect}\n" unless $? == 0
-    logfile
+    logfile_path
   end
 
   def self.get_ip_for(name)

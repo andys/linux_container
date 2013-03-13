@@ -51,6 +51,7 @@ class TestLinuxContainer < MiniTest::Unit::TestCase
     assert_equal "hi\n", $ec.execute('echo hi')
     $ec.stop
     assert($ec.wait_for { !running? }, 'wait_for !running?')
+    assert($ec.wait_for { File.exists?($ec.dir) }, 'wait_for directory deletion')
   end
 end
 

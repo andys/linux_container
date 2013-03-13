@@ -1,3 +1,4 @@
+v0.6. Ephemeral containers long-lived log file
 v0.5. Detach ephemeral containers from process group
 v0.4. sudo only if needed
 v0.3. Support shutdown
