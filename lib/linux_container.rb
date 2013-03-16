@@ -8,7 +8,7 @@ class LinuxContainer
   attr_writer :ip
 
   def self.all
-    `#{sudo_if_needed} lxc-ls`.lines.map(&:strip).uniq.map {|cname| new(name: cname) }
+    `#{sudo_if_needed} lxc-ls -1`.lines.map(&:strip).uniq.map {|cname| new(name: cname) }
   end
   
   def initialize(params={})
@@ -39,7 +39,7 @@ class LinuxContainer
   end
 
   def start_ephemeral
-    args = ['lxc-start-ephemeral','-U','aufs','-u',username,'-o',name]
+    args = ['lxc-start-ephemeral','-U','overlayfs','-u',username,'-o',name]
     logfile_path = bg_execute(*args)
     newname = nil
     while newname.nil?
