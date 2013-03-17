@@ -11,6 +11,12 @@ class LinuxContainer
     `#{sudo_if_needed} lxc-ls -1`.lines.map(&:strip).uniq.map {|cname| new(name: cname) }
   end
   
+  def self.version
+    @version ||= if `lxc-version` =~ /version: (\d+\.\d+)\./i
+      $1
+    end
+  end
+    
   def initialize(params={})
     params.each {|k,v| instance_variable_set "@#{k}", v }
     @username ||= 'ubuntu'
@@ -40,11 +46,12 @@ class LinuxContainer
 
   def start_ephemeral
     args = ['lxc-start-ephemeral','-U','overlayfs','-u',username,'-o',name]
+    args << '-d' if self.class.version == '0.9'
     logfile_path = bg_execute(*args)
     newname = nil
     while newname.nil?
       sleep 1
-      newname = $1 if File.read(logfile_path) =~ /^(.*) is running/
+      newname = $1 || $2 if File.read(logfile_path) =~ /^(.*) is running|lxc-console -n (.*)$/
      end
     self.class.new(name: newname, ssh_key_path: ssh_key_path, username: username)
   end
@@ -107,7 +114,8 @@ class LinuxContainer
   end
 
   def self.get_ip_for(name)
-    File.read('/var/lib/misc/dnsmasq.leases').each_line do |line|
+    fn = ['/var/lib/misc/dnsmasq.lxcbr0.leases', '/var/lib/misc/dnsmasq.leases'].detect {|f| File.readable?(f) }
+    File.read(fn).each_line do |line|
       (timestamp,macaddr,ip,hostname,misc) = line.split(' ')
       return ip if hostname == name
     end
