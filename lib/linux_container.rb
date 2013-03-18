@@ -44,10 +44,18 @@ class LinuxContainer
     lxc_execute('clone', '-o',fromname, *args)
   end
 
-  def start_ephemeral
-    args = ['lxc-start-ephemeral','-U','overlayfs','-u',username,'-o',name]
-    args << '-d' if self.class.version == '0.9'
-    logfile_path = bg_execute(*args)
+  def start_ephemeral(config={})
+    defaults = {'orig' => name, 'user' => username}
+    args = []
+    if self.class.version == '0.8'
+      defaults.merge!('union-type' => 'aufs')
+      args.push '-U', defaults.delete('union-type')
+    else
+      defaults.merge!('union-type' => 'overlayfs')
+      args << '-d'
+    end
+    args.push *defaults.merge!(config).map {|k, v| "--#{k}=#{v}" }
+    logfile_path = bg_execute('lxc-start-ephemeral', *args)
     newname = nil
     while newname.nil?
       sleep 1
