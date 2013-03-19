@@ -23,7 +23,8 @@ class LinuxContainer
   end
   
   def state
-    info('-s').chomp.split(':').last.strip
+    res = `#{self.class.sudo_if_needed} lxc-info -n #{Shellwords.escape name} -s 2>&1`
+    res.chomp.split(':').last.to_s.strip 
   end
   
   def ip
@@ -107,12 +108,12 @@ class LinuxContainer
   end
   
   def execute(*cmd)
-    cmdstring = "#{self.class.sudo_if_needed} #{cmd.shift} #{Shellwords.join(cmd)} "
+    cmdstring = "#{self.class.sudo_if_needed} #{cmd.shift} #{Shellwords.join(cmd)}"
     result = `#{cmdstring} 2>&1`
     raise "command failed: #{cmdstring.inspect}\n#{result}" unless $? == 0
     result
   end
-  
+
   def bg_execute(*cmd)
     logfile_path = "/tmp/lxc_ephemeral_#{Time.now.to_i.to_s(36)}#{$$}#{rand(0x100000000).to_s(36)}.log"
     cmdstring = "( #{self.class.sudo_if_needed} #{cmd.shift} #{Shellwords.join(cmd)} >>#{logfile_path} 2>>#{logfile_path} & )"

@@ -1,3 +1,4 @@
+v1.0. state() should always return a string
 v0.9. default to aufs only for 0.8 for ephemeral
 v0.8. Support lxc 0.9
 v0.7. Switch to overlayfs
