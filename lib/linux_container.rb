@@ -66,12 +66,24 @@ class LinuxContainer
   end
 
   def ssh(cmd)
+    execute('ssh', *ssh_args, "#{username}@#{ip}", cmd)
+  end 
+
+  def scp_to(srcpath, dstpath, *args)
+    execute('scp', *args, *ssh_args, srcpath, "#{username}@#{ip}:#{dstpath}")
+  end 
+
+  def scp_from(srcpath, dstpath, *args)
+    execute('scp', *args, *ssh_args, "#{username}@#{ip}:#{srcpath}", dstpath)
+  end 
+
+  def ssh_args
     raise "cannot ssh without ip" unless ip
     args = ['-o','StrictHostKeyChecking=no','-o','UserKnownHostsFile=/dev/null']
     args.push('-i', ssh_key_path) if ssh_key_path
-    args.push("#{username}@#{ip}", cmd)
-    execute('ssh', *args)
+    args
   end 
+
 
   def sshable?
     ssh('true') rescue false
@@ -100,7 +112,7 @@ class LinuxContainer
       end
     end
   end
-  
+
 #############################################################################
 
   def lxc_execute(cmd, *args)
