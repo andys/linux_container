@@ -1,3 +1,4 @@
+v1.2. make overlayfs overridable for lxc 0.8
 v1.1. scp into container support
 v1.0. state() should always return a string
 v0.9. default to aufs only for 0.8 for ephemeral

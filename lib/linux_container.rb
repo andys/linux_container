@@ -46,16 +46,15 @@ class LinuxContainer
   end
 
   def start_ephemeral(config={})
-    defaults = {'orig' => name, 'user' => username}
+    argshash = {'orig' => name, 'user' => username, 'union-type' => 'overlayfs'}.merge!(config)
     args = []
-    if self.class.version == '0.8'
-      defaults.merge!('union-type' => 'aufs')
-      args.push '-U', defaults.delete('union-type')
-    else
-      defaults.merge!('union-type' => 'overlayfs')
+    if self.class.version == '0.8' # ubuntu quantal and older
+      args.push '-U', argshash.delete('union-type')
+    else # ubuntu raring and newer
       args << '-d'
     end
-    args.push *defaults.merge!(config).map {|k, v| "--#{k}=#{v}" }
+    args.push *argshash.map {|k, v| "--#{k}=#{v}" }
+    
     logfile_path = bg_execute('lxc-start-ephemeral', *args)
     newname = nil
     while newname.nil?
