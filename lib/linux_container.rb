@@ -46,11 +46,13 @@ class LinuxContainer
   end
 
   def start_ephemeral(config={})
-    argshash = {'orig' => name, 'user' => username, 'union-type' => 'overlayfs'}.merge!(config)
+    argshash = {'orig' => name, 'user' => username}.merge!(config)
     args = []
     if self.class.version == '0.8' # ubuntu quantal and older
+      argshash['union-type'] ||= 'aufs'
       args.push '-U', argshash.delete('union-type')
     else # ubuntu raring and newer
+      argshash['union-type'] ||= 'overlayfs'
       args << '-d'
     end
     args.push *argshash.map {|k, v| "--#{k}=#{v}" }

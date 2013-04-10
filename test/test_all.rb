@@ -3,10 +3,10 @@ at_exit do
   File.unlink($sshkey) rescue nil
   ($ec.destroy '-f' if $ec) rescue nil
   ($c2.destroy '-f' if $c2) rescue nil
-  $c.destroy '-f'
+  $c.destroy '-f' if $c
 end
 
-require 'minitest/autorun'
+require 'minitest/unit'
 require "#{File.dirname(__FILE__)}/../lib/linux_container"
 
 class TestLinuxContainer < MiniTest::Unit::TestCase
@@ -56,6 +56,18 @@ class TestLinuxContainer < MiniTest::Unit::TestCase
     assert($ec.wait_for { !running? }, 'wait_for !running?')
     assert($ec.wait_for { !File.exists?($ec.dir) }, 'wait_for directory deletion')
   end
+  
+  def test_ephemeral_overlayfs
+    assert($ec = $c.start_ephemeral('union-type' => 'overlayfs'))
+    assert($ec.wait_for { running? }, 'wait_for running?')
+    assert_match /type overlayfs/, `mount`.lines.grep(/#{$ec.name}/).first
+    $ec.stop
+    assert($ec.wait_for { !running? }, 'wait_for !running?')
+  end
+  
+
+
 end
 
 TestLinuxContainer.startup
+MiniTest::Unit.new.run ARGV
