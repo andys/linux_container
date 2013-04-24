@@ -44,6 +44,11 @@ class LinuxContainer
     fromname = self.class === from ? from.name : from
     lxc_execute('clone', '-o',fromname, *args)
   end
+  
+  def parent_container
+    n = name.dup
+    self.class.new(name: n) if n.sub!(/-temp-[0-9A-Za-z]+$/, '')
+  end
 
   def start_ephemeral(config={})
     argshash = {'orig' => name, 'user' => username}.merge!(config)

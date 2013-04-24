@@ -44,7 +44,8 @@ class TestLinuxContainer < MiniTest::Unit::TestCase
 
   def test_ephemeral
     assert($ec = $c.start_ephemeral)
-    assert_match /^linuxcontainergemtest.+/, $ec.name
+    assert_match /^linuxcontainergemtest-temp-[a-zA-Z0-9]+$/, $ec.name
+    assert_equal $c.name, $ec.parent_container.name
     assert($ec.wait_for { running? }, 'wait_for running?')
     assert($ec.wait_for { ip }, 'wait_for ip')
     assert($ec.wait_for { sshable? }, 'wait_for sshable?')

@@ -43,6 +43,8 @@ very little disk space, which then disappears when shut down.
 
     > e = c.start_ephemeral
     > e.wait_for { ip && sshable? }
+    > e.parent_container
+     => #<LinuxContainer:...>
 
 
 ### Clone an existing container and start it in background, with 512M memlimit
@@ -62,7 +64,7 @@ very little disk space, which then disappears when shut down.
     > c.shutdown '-t', '120'
 
 
-### Force shutdown
+### Force shutdown & delete
 
     > c.destroy '-f'
 
