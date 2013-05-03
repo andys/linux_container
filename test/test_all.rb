@@ -15,7 +15,7 @@ class TestLinuxContainer < MiniTest::Unit::TestCase
     $sshkey = "/tmp/linuxcontainergemtestssh#{$$}"
     `ssh-keygen -q -t rsa -f #{$sshkey} -N ''` unless File.exists?($sshkey)
     $c = LinuxContainer.new(name: 'linuxcontainergemtest', ssh_key_path: $sshkey)
-    $c.create or raise "Create failed"
+    $c.create(release: 'precise') or raise "Create failed"
   end
 
   def test_state
@@ -44,7 +44,7 @@ class TestLinuxContainer < MiniTest::Unit::TestCase
 
   def test_ephemeral
     assert($ec = $c.start_ephemeral)
-    assert_match /^linuxcontainergemtest-temp-[a-zA-Z0-9]+$/, $ec.name
+    assert_match /^linuxcontainergemtest(-temp)?-[_a-zA-Z0-9]+$/, $ec.name
     assert_equal $c.name, $ec.parent_container.name
     assert($ec.wait_for { running? }, 'wait_for running?')
     assert($ec.wait_for { ip }, 'wait_for ip')
@@ -61,7 +61,7 @@ class TestLinuxContainer < MiniTest::Unit::TestCase
   def test_ephemeral_overlayfs
     assert($ec = $c.start_ephemeral('union-type' => 'overlayfs'))
     assert($ec.wait_for { running? }, 'wait_for running?')
-    assert_match /type overlayfs/, `mount`.lines.grep(/#{$ec.name}/).first
+    assert($ec.wait_for { ip }, 'wait_for ip')
     $ec.stop
     assert($ec.wait_for { !running? }, 'wait_for !running?')
   end
