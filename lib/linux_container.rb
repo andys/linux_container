@@ -47,7 +47,7 @@ class LinuxContainer
   
   def parent_container
     n = name.dup
-    self.class.new(name: n) if n.sub!(/(-temp)?-[0-9A-Za-z]+$/, '')
+    self.class.new(name: n) if n.sub!(/(-temp)?-[0-9A-Za-z_\-]+$/, '')
   end
 
   def start_ephemeral(config={})
