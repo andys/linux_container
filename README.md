@@ -4,8 +4,8 @@ This gem is an easy ruby interface to ubuntu linux containers (LXC). It
 provides a convenient wrapper for starting Ubuntu Cloud image-based
 ephemeral containers.
 
-lxc-start-ephemeral uses AUFS overlay filesystem to clone an container using
-very little disk space, which then disappears when shut down.
+lxc-start-ephemeral uses "overlay filesystems" to start a cloned container
+that uses little disk space. This container disappears when shut down.
 
     $ gem install linux_container
 

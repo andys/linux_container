@@ -6,7 +6,7 @@ require 'tempfile'
 class LinuxContainer
   attr_accessor :name, :username, :ssh_key_path
   attr_writer :ip
-
+  
   def self.all
     `#{sudo_if_needed} lxc-ls -1`.lines.map(&:strip).uniq.map {|cname| new(name: cname) }
   end
@@ -132,11 +132,18 @@ class LinuxContainer
     result
   end
 
+  class ProcessFailed < Exception ; end
+
   def bg_execute(*cmd)
     logfile_path = "/tmp/lxc_ephemeral_#{Time.now.to_i.to_s(36)}#{$$}#{rand(0x100000000).to_s(36)}.log"
-    cmdstring = "( #{self.class.sudo_if_needed} #{cmd.shift} #{Shellwords.join(cmd)} >>#{logfile_path} 2>>#{logfile_path} & )"
-    system(cmdstring)
-    raise "command failed: #{cmdstring.inspect}\n" unless $? == 0
+    cmdstring = "#{self.class.sudo_if_needed} #{cmd.shift} #{Shellwords.join(cmd)} >>#{logfile_path} 2>>#{logfile_path}"
+    pid = spawn(cmdstring, pgroup: true)
+    raise ProcessFailed.new("command failed: #{cmdstring.inspect}") unless pid > 0
+    Thread.abort_on_exception = true
+    Thread.new do 
+      Process.waitpid pid
+      raise ProcessFailed.new("command failed: #{cmdstring.inspect}") unless $? == 0
+    end
     logfile_path
   end
 

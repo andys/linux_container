@@ -1,3 +1,4 @@
+v1.7. use Process.spawn instead of background shell for ephemeral
 v1.6. additional ephemeral container naming chars
 v1.5. match new ephemeral container naming scheme
 v1.4. parent_container feature

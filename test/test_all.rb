@@ -66,7 +66,12 @@ class TestLinuxContainer < MiniTest::Unit::TestCase
     assert($ec.wait_for { !running? }, 'wait_for !running?')
   end
   
-
+  def test_bg_execute_failure
+    assert_raises(LinuxContainer::ProcessFailed) do
+      $c.bg_execute 'false'
+      sleep 5
+    end
+  end
 
 end
 
