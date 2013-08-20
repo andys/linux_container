@@ -68,6 +68,10 @@ that uses little disk space. This container disappears when shut down.
 
     > c.destroy '-f'
 
+### SSH a long running command
+
+    > c.ssh('mason build') {|log| print "->#{log}" }
+
 ### other commands
 
     execute, kill, wait, cgroup, ps, info, freeze, unfreeze, netstat

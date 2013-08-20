@@ -49,7 +49,13 @@ class TestLinuxContainer < MiniTest::Unit::TestCase
     assert($ec.wait_for { running? }, 'wait_for running?')
     assert($ec.wait_for { ip }, 'wait_for ip')
     assert($ec.wait_for { sshable? }, 'wait_for sshable?')
-    assert_equal "hi\n", $ec.execute('echo hi')
+    
+    assert_equal "hi!\n", $ec.ssh('echo hi!')
+    
+    yield_result = nil
+    $ec.execute('echo hi!') {|line| yield_result = line }
+    assert_equal "hi!\n", yield_result
+    
     File.unlink('/tmp/lsb-release') rescue nil
     $ec.scp_from('/etc/lsb-release', '/tmp/lsb-release')
     assert File.exists?('/tmp/lsb-release')

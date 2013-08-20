@@ -71,8 +71,8 @@ class LinuxContainer
     self.class.new(name: newname, ssh_key_path: ssh_key_path, username: username)
   end
 
-  def ssh(cmd)
-    execute('ssh', *ssh_args, "#{username}@#{ip}", cmd)
+  def ssh(cmd, &bl)
+    execute('ssh', *ssh_args, "#{username}@#{ip}", cmd, &bl)
   end 
 
   def scp_to(srcpath, dstpath, *args)
@@ -85,7 +85,7 @@ class LinuxContainer
 
   def ssh_args
     raise "cannot ssh without ip" unless ip
-    args = ['-o','StrictHostKeyChecking=no','-o','UserKnownHostsFile=/dev/null']
+    args = ['-o','StrictHostKeyChecking=no','-o','UserKnownHostsFile=/dev/null','-q']
     args.push('-i', ssh_key_path) if ssh_key_path
     args
   end 
@@ -127,7 +127,13 @@ class LinuxContainer
   
   def execute(*cmd)
     cmdstring = "#{self.class.sudo_if_needed} #{cmd.shift} #{Shellwords.join(cmd)}"
-    result = `#{cmdstring} 2>&1`
+    result = ''
+    IO.popen("#{cmdstring} 2>&1", 'r') do |io|
+      io.each_line do |line|
+        yield line if block_given?
+        result << line
+      end
+    end
     raise "command failed: #{cmdstring.inspect}\n#{result}" unless $? == 0
     result
   end
